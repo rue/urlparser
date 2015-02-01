@@ -20,6 +20,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
+var CHAR_SPACE                = 0x20;
+var CHAR_HASH                 = 0x23;
+var CHAR_PERCENT              = 0x25;
+var CHAR_PLUS                 = 0x2B;
+var CHAR_HYPHEN               = 0x2D;
+var CHAR_PERIOD               = 0x2E;
+var CHAR_SLASH                = 0x2F;
+var CHAR_ZERO                 = 0x30;
+var CHAR_NINE                 = 0x39;
+var CHAR_COLON                = 0x3A;
+var CHAR_QUESTION             = 0x3F;
+var CHAR_AT                   = 0x40;
+var CHAR_A_CAPITAL            = 0x41;
+var CHAR_Z_CAPITAL            = 0x5A;
+var CHAR_OPEN_SQUARE_BRACKET  = 0x5B;
+var CHAR_BACKSLASH            = 0x5C;
+var CHAR_CLOSE_SQUARE_BRACKET = 0x5D;
+var CHAR_UNDERSCORE           = 0x5F;
+var CHAR_A_SMALL              = 0x61;
+var CHAR_Z_SMALL              = 0x7A;
+var CHAR_OPEN_CURLY_BRACKET   = 0x7B;
+var CHAR_TILDE                = 0x7E;
+
+
 function Url() {
     //For more efficient internal representation and laziness.
     //The non-underscore versions of these properties are accessor functions
@@ -44,6 +69,7 @@ var querystring = require("querystring");
 
 Url.queryString = querystring;
 
+
 Url.prototype.parse =
 function Url$parse(str, parseQueryString, hostDenotesSlash, disableAutoEscapeChars) {
     if (typeof str !== "string") {
@@ -54,8 +80,8 @@ function Url$parse(str, parseQueryString, hostDenotesSlash, disableAutoEscapeCha
     var end = str.length - 1;
 
     //Trim leading and trailing ws
-    while (str.charCodeAt(start) <= 0x20 /*' '*/) start++;
-    while (str.charCodeAt(end) <= 0x20 /*' '*/) end--;
+    while (str.charCodeAt(start) <= CHAR_SPACE) start++;
+    while (str.charCodeAt(end) <= CHAR_SPACE) end--;
 
     start = this._parseProtocol(str, start, end);
 
@@ -72,13 +98,13 @@ function Url$parse(str, parseQueryString, hostDenotesSlash, disableAutoEscapeCha
     if (start <= end) {
         var ch = str.charCodeAt(start);
 
-        if (ch === 0x2F /*'/'*/ || ch === 0x5C /*'\'*/) {
+        if (ch === CHAR_SLASH || ch === CHAR_BACKSLASH) {
             this._parsePath(str, start, end, disableAutoEscapeChars);
         }
-        else if (ch === 0x3F /*'?'*/) {
+        else if (ch === CHAR_QUESTION) {
             this._parseQuery(str, start, end, disableAutoEscapeChars);
         }
-        else if (ch === 0x23 /*'#'*/) {
+        else if (ch === CHAR_HASH) {
           this._parseHash(str, start, end, disableAutoEscapeChars);
         }
         else if (this._protocol !== "javascript") {
@@ -100,7 +126,7 @@ function Url$parse(str, parseQueryString, hostDenotesSlash, disableAutoEscapeCha
         if (search == null) {
             search = this.search = "";
         }
-        if (search.charCodeAt(0) === 0x3F /*'?'*/) {
+        if (search.charCodeAt(0) === CHAR_QUESTION) {
             search = search.slice(1);
         }
         //This calls a setter function, there is no .query data property
@@ -141,7 +167,7 @@ Url.prototype.format = function Url$format() {
         search = query ? "?" + query : "";
     }
 
-    if (protocol && protocol.charCodeAt(protocol.length - 1) !== 0x3A /*':'*/)
+    if (protocol && protocol.charCodeAt(protocol.length - 1) !== CHAR_COLON)
         protocol += ":";
 
     if (this.host) {
@@ -161,12 +187,12 @@ Url.prototype.format = function Url$format() {
     if (protocol) scheme = protocol + (slashes ? "//" : "");
     else if (slashes) scheme = "//";
 
-    if (slashes && pathname && pathname.charCodeAt(0) !== 0x2F /*'/'*/) {
+    if (slashes && pathname && pathname.charCodeAt(0) !== CHAR_SLASH) {
         pathname = "/" + pathname;
     }
-    if (search && search.charCodeAt(0) !== 0x3F /*'?'*/)
+    if (search && search.charCodeAt(0) !== CHAR_QUESTION)
         search = "?" + search;
-    if (hash && hash.charCodeAt(0) !== 0x23 /*'#'*/)
+    if (hash && hash.charCodeAt(0) !== CHAR_HASH)
         hash = "#" + hash;
 
     pathname = escapePathName(pathname);
@@ -242,11 +268,11 @@ Url.prototype.resolveObject = function Url$resolveObject(relative) {
     }
 
     var isSourceAbs =
-        (result.pathname && result.pathname.charCodeAt(0) === 0x2F /*'/'*/);
+        (result.pathname && result.pathname.charCodeAt(0) === CHAR_SLASH);
     var isRelAbs = (
             relative.host ||
             (relative.pathname &&
-            relative.pathname.charCodeAt(0) === 0x2F /*'/'*/)
+            relative.pathname.charCodeAt(0) === CHAR_SLASH)
         );
     var mustEndAbs = (isRelAbs || isSourceAbs ||
                         (result.host && relative.pathname));
@@ -359,7 +385,7 @@ Url.prototype.resolveObject = function Url$resolveObject(relative) {
     }
 
     if (mustEndAbs && srcPath[0] !== "" &&
-        (!srcPath[0] || srcPath[0].charCodeAt(0) !== 0x2F /*'/'*/)) {
+        (!srcPath[0] || srcPath[0].charCodeAt(0) !== CHAR_SLASH)) {
         srcPath.unshift("");
     }
 
@@ -368,7 +394,7 @@ Url.prototype.resolveObject = function Url$resolveObject(relative) {
     }
 
     var isAbsolute = srcPath[0] === "" ||
-        (srcPath[0] && srcPath[0].charCodeAt(0) === 0x2F /*'/'*/);
+        (srcPath[0] && srcPath[0].charCodeAt(0) === CHAR_SLASH);
 
     // put the host back
     if (psychotic) {
@@ -409,7 +435,7 @@ Url.prototype._hostIdna = function Url$_hostIdna(hostname) {
 
 var escapePathName = Url.prototype._escapePathName =
 function Url$_escapePathName(pathname) {
-    if (!containsCharacter2(pathname, 0x23 /*'#'*/, 0x3F /*'?'*/)) {
+    if (!containsCharacter2(pathname, CHAR_HASH, CHAR_QUESTION)) {
         return pathname;
     }
     //Avoid closure creation to keep this inlinable
@@ -418,7 +444,7 @@ function Url$_escapePathName(pathname) {
 
 var escapeSearch = Url.prototype._escapeSearch =
 function Url$_escapeSearch(search) {
-    if (!containsCharacter2(search, 0x23 /*'#'*/, -1)) return search;
+    if (!containsCharacter2(search, CHAR_HASH, -1)) return search;
     //Avoid closure creation to keep this inlinable
     return _escapeSearch(search);
 };
@@ -430,14 +456,14 @@ Url.prototype._parseProtocol = function Url$_parseProtocol(str, start, end) {
     for (var i = start; i <= end; ++i) {
         var ch = str.charCodeAt(i);
 
-        if (ch === 0x3A /*':'*/) {
+        if (ch === CHAR_COLON) {
             var protocol = str.slice(start, i);
             if (doLowerCase) protocol = protocol.toLowerCase();
             this._protocol = protocol;
             return i + 1;
         }
         else if (protocolCharacters[ch] === 1) {
-            if (ch < 0x61 /*'a'*/)
+            if (ch < CHAR_A_SMALL)
                 doLowerCase = true;
         }
         else {
@@ -467,13 +493,13 @@ Url.prototype._parsePort = function Url$_parsePort(str, start, end) {
     for (var i = start; i <= end; ++i) {
         var ch = str.charCodeAt(i);
 
-        if (0x30 /*'0'*/ <= ch && ch <= 0x39 /*'9'*/) {
-            port = (10 * port) + (ch - 0x30 /*'0'*/);
+        if (CHAR_ZERO <= ch && ch <= CHAR_NINE) {
+            port = (10 * port) + (ch - CHAR_ZERO);
             hadChars = true;
         }
         else {
             validPort = false;
-            if (ch === 0x5C/*'\'*/ || ch === 0x2F/*'/'*/) {
+            if (ch === CHAR_BACKSLASH || ch === CHAR_SLASH) {
                 validPort = true;
             }
             break;
@@ -496,8 +522,8 @@ function Url$_parseHost(str, start, end, slashesDenoteHost) {
     var hostEndingCharacters = this._hostEndingCharacters;
     var first = str.charCodeAt(start);
     var second = str.charCodeAt(start + 1);
-    if ((first === 0x2F /*'/'*/ || first === 0x5C /*'\'*/) &&
-        (second === 0x2F /*'/'*/ || second === 0x5C /*'\'*/)) {
+    if ((first === CHAR_SLASH || first === CHAR_BACKSLASH) &&
+        (second === CHAR_SLASH || second === CHAR_BACKSLASH)) {
         this.slashes = true;
 
         //The string starts with //
@@ -507,7 +533,7 @@ function Url$_parseHost(str, start, end, slashesDenoteHost) {
             //If slashes do not denote host and there is no auth,
             //there is no host when the string starts with //
             var hasAuth =
-                containsCharacter(str, 0x40 /*'@'*/, 2, hostEndingCharacters);
+                containsCharacter(str, CHAR_AT, 2, hostEndingCharacters);
             if (!hasAuth && !slashesDenoteHost) {
                 this.slashes = null;
                 return start;
@@ -542,12 +568,12 @@ function Url$_parseHost(str, start, end, slashesDenoteHost) {
     for (var i = start; i <= end; ++i) {
         var ch = str.charCodeAt(i);
 
-        if (ch === 0x40 /*'@'*/) {
+        if (ch === CHAR_AT) {
             j = i;
         }
         //This check is very, very cheap. Unneeded decodeURIComponent is very
         //very expensive
-        else if (ch === 0x25 /*'%'*/) {
+        else if (ch === CHAR_PERCENT) {
             authNeedsDecoding = true;
         }
         else if (hostEndingCharacters[ch] === 1) {
@@ -564,13 +590,13 @@ function Url$_parseHost(str, start, end, slashesDenoteHost) {
     }
 
     //Host name is starting with a [
-    if (str.charCodeAt(start) === 0x5B /*'['*/) {
+    if (str.charCodeAt(start) === CHAR_OPEN_SQUARE_BRACKET) {
         for (var i = start + 1; i <= end; ++i) {
             var ch = str.charCodeAt(i);
 
             //Assume valid IP6 is between the brackets
-            if (ch === 0x5D /*']'*/) {
-                if (str.charCodeAt(i + 1) === 0x3A /*':'*/) {
+            if (ch === CHAR_CLOSE_SQUARE_BRACKET) {
+                if (str.charCodeAt(i + 1) === CHAR_COLON) {
                     portLength = this._parsePort(str, i + 2, end) + 1;
                 }
                 var hostname = str.slice(start + 1, i).toLowerCase();
@@ -593,13 +619,13 @@ function Url$_parseHost(str, start, end, slashesDenoteHost) {
         }
         var ch = str.charCodeAt(i);
 
-        if (ch === 0x3A /*':'*/) {
+        if (ch === CHAR_COLON) {
             portLength = this._parsePort(str, i + 1, end) + 1;
             hostNameEnd = i - 1;
             break;
         }
-        else if (ch < 0x61 /*'a'*/) {
-            if (ch === 0x2E /*'.'*/) {
+        else if (ch < CHAR_A_SMALL) {
+            if (ch === CHAR_PERIOD) {
                 //Node.js ignores this error
                 /*
                 if (lastCh === DOT || lastCh === -1) {
@@ -609,14 +635,14 @@ function Url$_parseHost(str, start, end, slashesDenoteHost) {
                 */
                 charsAfterDot = -1;
             }
-            else if (0x41 /*'A'*/ <= ch && ch <= 0x5A /*'Z'*/) {
+            else if (CHAR_A_CAPITAL <= ch && ch <= CHAR_Z_CAPITAL) {
                 doLowerCase = true;
             }
             //Valid characters other than ASCII letters -, _, +, 0-9
-            else if (!(ch === 0x2D /*'-'*/ ||
-                       ch === 0x5F /*'_'*/ ||
-                       ch === 0x2B /*'+'*/ ||
-                       (0x30 /*'0'*/ <= ch && ch <= 0x39 /*'9'*/))
+            else if (!(ch === CHAR_HYPHEN ||
+                       ch === CHAR_UNDERSCORE ||
+                       ch === CHAR_PLUS ||
+                       (CHAR_ZERO <= ch && ch <= CHAR_NINE))
                 ) {
                 if (hostEndingCharacters[ch] === 0 &&
                     this._noPrependSlashHostEnders[ch] === 0) {
@@ -626,8 +652,8 @@ function Url$_parseHost(str, start, end, slashesDenoteHost) {
                 break;
             }
         }
-        else if (ch >= 0x7B /*'{'*/) {
-            if (ch <= 0x7E /*'~'*/) {
+        else if (ch >= CHAR_OPEN_CURLY_BRACKET) {
+            if (ch <= CHAR_TILDE) {
                 if (this._noPrependSlashHostEnders[ch] === 0) {
                     this._prependSlash = true;
                 }
@@ -723,12 +749,12 @@ function Url$_parsePath(str, start, end, disableAutoEscapeChars) {
 
     for (var i = start; i <= end; ++i) {
         var ch = str.charCodeAt(i);
-        if (ch === 0x23 /*'#'*/) {
+        if (ch === CHAR_HASH) {
           this._parseHash(str, i, end, disableAutoEscapeChars);
             pathEnd = i - 1;
             break;
         }
-        else if (ch === 0x3F /*'?'*/) {
+        else if (ch === CHAR_QUESTION) {
             this._parseQuery(str, i, end, disableAutoEscapeChars);
             pathEnd = i - 1;
             break;
@@ -764,7 +790,7 @@ Url.prototype._parseQuery = function Url$_parseQuery(str, start, end, disableAut
     for (var i = start; i <= end; ++i) {
         var ch = str.charCodeAt(i);
 
-        if (ch === 0x23 /*'#'*/) {
+        if (ch === CHAR_HASH) {
             this._parseHash(str, i, end, disableAutoEscapeChars);
             queryEnd = i - 1;
             break;
@@ -825,7 +851,7 @@ Object.defineProperty(Url.prototype, "query", {
         var search = this.search;
 
         if (search) {
-            if (search.charCodeAt(0) === 0x3F /*'?'*/) {
+            if (search.charCodeAt(0) === CHAR_QUESTION) {
                 search = search.slice(1);
             }
             if (search !== "") {
@@ -860,7 +886,7 @@ Object.defineProperty(Url.prototype, "protocol", {
     set: function(v) {
         if (typeof v === "string") {
             var end = v.length - 1;
-            if (v.charCodeAt(end) === 0x3A /*':'*/) {
+            if (v.charCodeAt(end) === CHAR_COLON) {
                 this._protocol = v.slice(0, end);
             }
             else {
@@ -1002,7 +1028,7 @@ for (var i = 0, len = autoEscape.length; i < len; ++i) {
     autoEscapeMap[c.charCodeAt(0)] = esc;
 }
 var afterQueryAutoEscapeMap = autoEscapeMap.slice();
-autoEscapeMap[0x5C /*'\'*/] = "/";
+autoEscapeMap[CHAR_BACKSLASH] = "/";
 
 var slashProtocols = Url.prototype._slashProtocols = {
     http: true,
@@ -1023,13 +1049,13 @@ function f(){}
 f.prototype = slashProtocols;
 
 Url.prototype._protocolCharacters = makeAsciiTable([
-    [0x61 /*'a'*/, 0x7A /*'z'*/],
-    [0x41 /*'A'*/, 0x5A /*'Z'*/],
-    0x2E /*'.'*/, 0x2B /*'+'*/, 0x2D /*'-'*/
+    [CHAR_A_SMALL, CHAR_Z_SMALL],
+    [CHAR_A_CAPITAL, CHAR_Z_CAPITAL],
+    CHAR_PERIOD, CHAR_PLUS, CHAR_HYPHEN
 ]);
 
 Url.prototype._hostEndingCharacters = makeAsciiTable([
-    0x23 /*'#'*/, 0x3F /*'?'*/, 0x2F /*'/'*/, 0x5C /*'\'*/
+    CHAR_HASH, CHAR_QUESTION, CHAR_SLASH, CHAR_BACKSLASH
 ]);
 
 Url.prototype._autoEscapeCharacters = makeAsciiTable(
